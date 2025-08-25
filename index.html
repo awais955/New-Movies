@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Shop Billing</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      padding: 20px;
+      text-align: center;
+      overflow: hidden; /* prevent scrolling */
+    }
+    h2 { 
+      margin-bottom: 15px; 
+      font-size: 26px;
+      color: #00e676;
+      text-shadow: 0 0 10px #00e67688;
+    }
+    table {
+      margin: auto;
+      width: 92%;
+      border-collapse: collapse;
+      background: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+      font-size: 15px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #333;
+      text-align: center;
+    }
+    th { 
+      background: #2c2c2c; 
+      font-size: 17px;
+      color: #00bcd4;
+    }
+    tr:hover { background: #2a2a2a; }
+    button {
+      padding: 6px 12px;
+      margin: 0 2px;
+      font-size: 15px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #00e676;
+      color: #121212;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+    button:hover { background: #1de9b6; transform: scale(1.05); }
+
+    /* Bigger Input Boxes */
+    input {
+      width: 85px;
+      height: 42px;
+      text-align: center;
+      font-size: 17px;
+      font-weight: bold;
+      background: #2c2c2c;
+      color: #fff;
+      border: 2px solid #444;
+      border-radius: 6px;
+    }
+    /* Remove arrows inside number inputs */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] { -moz-appearance: textfield; }
+
+    .rateToggle { background: #00bcd4; color: #fff; }
+    .rateToggle:hover { background: #03a9f4; }
+    .totals {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .total-box {
+      font-size: 1.3em;
+      font-weight: bold;
+      padding: 6px 14px;
+      border-radius: 8px;
+      width: fit-content;
+    }
+    #compTotal { color: #ff9800; text-shadow: 0 0 10px #ff980088; }
+    #productOnly { color: #03a9f4; text-shadow: 0 0 10px #03a9f488; }
+    #finalTotal { color: #00e676; text-shadow: 0 0 10px #00e67688; font-size: 1.7em; }
+    .icon { margin-right: 5px; color: #00e676; }
+    .product-inputs {
+      margin-top: 10px;
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+    .product-inputs input {
+      width: 85px;
+      height: 42px;
+    }
+    /* Hidden Discount Box (less readable, bottom-right) */
+    #discountBox {
+      position: fixed;
+      bottom: 12px;
+      right: 15px;
+      background: rgba(34,34,34,0.6); /* slightly semi-opaque, subtle */
+      border: 1px solid rgba(80,80,80,0.6);
+      padding: 6px 8px;
+      border-radius: 4px;
+      display: none; /* hidden by default */
+      color: rgba(200,200,200,0.7);
+      font-size: 12px;
+      text-align: left;
+      max-width: 220px;
+      line-height: 1.2;
+    }
+    #discountBox h3 {
+      margin: 0 0 4px 0;
+      color: #aaa;
+      font-size: 13px;
+    }
+    /* Only change previously made: bigger bold in discount box */
+    #discountBox strong {
+      font-size: 16px;
+      color: #e6e6e6;
+    }
+  </style>
+</head>
+<body>
+  <h2>Data Shop Billing (Developed by Awais- 0309-19-29-000)</h2>
+  <table>
+    <tr>
+      <th>Item</th>
+      <th>Qty</th>
+      <th>Rate</th>
+      <th>Total</th>
+    </tr>
+    <!-- Movies from Computer -->
+    <tr>
+      <td><i class="fa-solid fa-desktop icon"></i> Movie (Computer)</td>
+      <td>
+        <button onclick="changeQty('moviePC', -1)">-</button>
+        <input id="moviePCQty" type="number" value="0" oninput="calculate()">
+        <button onclick="changeQty('moviePC', 1)">+</button>
+      </td>
+      <td>₹: : 10</td>
+      <td id="moviePCTotal">0</td>
+    </tr>
+    <!-- Movies from Net -->
+    <tr>
+      <td><i class="fa-solid fa-globe icon"></i> Movie (Net)</td>
+      <td>
+        <button onclick="changeQty('movieNet', -1)">-</button>
+        <input id="movieNetQty" type="number" value="0" oninput="calculate()">
+        <button onclick="changeQty('movieNet', 1)">+</button>
+      </td>
+      <td>₹: : 20</td>
+      <td id="movieNetTotal">0</td>
+    </tr>
+    <!-- Episodes from Computer -->
+    <tr>
+      <td><i class="fa-solid fa-tv icon"></i> Drama Episode (Computer)</td>
+      <td>
+        <button onclick="changeQty('epPC', -1)">-</button>
+        <input id="epPCQty" type="number" value="0" oninput="calculate()">
+        <button onclick="changeQty('epPC', 1)">+</button>
+      </td>
+      <td>
+        <button class="rateToggle" onclick="toggleEpRate()">₹: : <span id='epPCRate'>3</span></button>
+      </td>
+      <td id="epPCTotal">0</td>
+    </tr>
+    <!-- Episodes from Net -->
+    <tr>
+      <td><i class="fa-solid fa-wifi icon"></i> Drama Episode / Songs (Net)</td>
+      <td>
+        <button onclick="changeQty('epNet', -1)">-</button>
+        <input id="epNetQty" type="number" value="0" oninput="calculate()">
+        <button onclick="changeQty('epNet', 1)">+</button>
+      </td>
+      <td>₹: : 5</td>
+      <td id="epNetTotal">0</td>
+    </tr>
+    <!-- Song Folders -->
+    <tr>
+      <td><i class="fa-solid fa-music icon"></i> Song Folders</td>
+      <td>
+        <button onclick="changeQty('folder', -1)">-</button>
+        <input id="folderQty" type="number" value="0" oninput="calculate()">
+        <button onclick="changeQty('folder', 1)">+</button>
+      </td>
+      <td id="folderRate">Auto</td>
+      <td id="folderTotal">0</td>
+    </tr>
+    <!-- Extra Charges -->
+    <tr>
+      <td><i class="fa-solid fa-plus-circle icon"></i> Extra Charges</td>
+      <td>
+        <button onclick="changeQty('extra', -1)">-</button>
+        <input id="extraCharge" type="number" value="0" oninput="calculate()">
+        <button onclick="changeQty('extra', 1)">+</button>
+      </td>
+      <td>Manual</td>
+      <td id="extraTotal">0</td>
+    </tr>
+  </table>
+
+  <div class="totals">
+    <div id="compTotal" class="total-box">Computer Total: ₹: : 0</div>
+
+    <!-- Products Price input row -->
+    <div class="product-inputs">
+      <input type="number" id="product1" value="0" oninput="calculate()">
+      <input type="number" id="product2" value="0" oninput="calculate()">
+      <input type="number" id="product3" value="0" oninput="calculate()">
+      <input type="number" id="product4" value="0" oninput="calculate()">
+      <input type="number" id="product5" value="0" oninput="calculate()">
+    </div>
+
+    <div id="productOnly" class="total-box">Products Price: ₹: : 0</div>
+    <div id="finalTotal" class="total-box">Final Total (Computer + Products): ₹: : 0</div>
+  </div>
+
+  <!-- Hidden discount info -->
+  <div id="discountBox" aria-hidden="true">
+    <h3>Discount Info</h3>
+    <div id="discountDetails">No discount applied.</div>
+  </div>
+
+  <script>
+    let epRate = 3; // default episode rate (PC)
+
+    function changeQty(item, change) {
+      let input;
+      if (item === "extra") {
+        input = document.getElementById("extraCharge");
+      } else {
+        input = document.getElementById(item + "Qty");
+      }
+      let value = parseInt(input.value) || 0;
+      value += change;
+      if (value < 0) value = 0;
+      input.value = value;
+      calculate();
+    }
+
+    function toggleEpRate() {
+      epRate = (epRate === 2 ? 3 : 2);
+      document.getElementById("epPCRate").innerText = epRate;
+      calculate();
+    }
+
+    function calculate() {
+      // read quantities
+      let moviePC = parseInt(document.getElementById("moviePCQty").value) || 0;
+      let movieNet = parseInt(document.getElementById("movieNetQty").value) || 0;
+      let epPC = parseInt(document.getElementById("epPCQty").value) || 0;
+      let epNet = parseInt(document.getElementById("epNetQty").value) || 0;
+      let folder = parseInt(document.getElementById("folderQty").value) || 0;
+      let extra = parseInt(document.getElementById("extraCharge").value) || 0;
+
+      // products sum
+      let product = 0;
+      for (let i = 1; i <= 5; i++) {
+        product += parseInt(document.getElementById("product" + i).value) || 0;
+      }
+
+      // per-row totals
+      let moviePCTotal = moviePC * 10;
+      let movieNetTotal = movieNet * 20;
+      let epPCTotal = epPC * epRate;
+      let epNetTotal = epNet * 5;
+
+      // folder logic
+      let folderTotal = 0;
+      let folderRateText = "";
+      if (folder === 1) {
+        folderTotal = 20; folderRateText = "₹: : 20 each";
+      } else if (folder === 2) {
+        folderTotal = 30; folderRateText = "₹: : 15 each";
+      } else if (folder === 3) {
+        folderTotal = 50; folderRateText = "₹: : 50 total";
+      } else if (folder === 4) {
+        folderTotal = 60; folderRateText = "₹: : 60 total";
+      } else if (folder === 5) {
+        folderTotal = 80; folderRateText = "₹: : 80 total";
+      } else if (folder === 6) {
+        folderTotal = 100; folderRateText = "₹: : 100 total";
+      } else if (folder > 6 && folder <= 10) {
+        folderTotal = folder * 12; folderRateText = "₹: 12 each";
+      } else if (folder > 10) {
+        folderTotal = folder * 10; folderRateText = "₹: 10 each";
+      } else {
+        folderRateText = "Auto";
+      }
+
+      // update row UI totals (rounded)
+      const fmt = v => Math.round(v);
+      document.getElementById("moviePCTotal").innerText = fmt(moviePCTotal);
+      document.getElementById("movieNetTotal").innerText = fmt(movieNetTotal);
+      document.getElementById("epPCTotal").innerText = fmt(epPCTotal);
+      document.getElementById("epNetTotal").innerText = fmt(epNetTotal);
+      document.getElementById("folderRate").innerText = folderRateText;
+      document.getElementById("folderTotal").innerText = fmt(folderTotal);
+      document.getElementById("extraTotal").innerText = fmt(extra);
+
+      // ORIGINAL computer total (no discount shown here) - rounded
+      let compTotal = moviePCTotal + movieNetTotal + epPCTotal + epNetTotal + folderTotal + extra;
+      document.getElementById("compTotal").innerText = "Computer Total: ₹: " + fmt(compTotal);
+
+      // products display (rounded)
+      document.getElementById("productOnly").innerText = "Products Price: ₹: " + fmt(product);
+
+      // FINAL total shown to customer = ORIGINAL computer total + products (no discount in main UI) - rounded
+      let finalShown = compTotal + product;
+      document.getElementById("finalTotal").innerText = "Final Total (Computer + Products): ₹: " + fmt(finalShown);
+
+      // calculate discount (for hidden box only)
+      let discountPercent = 0;
+      if (compTotal >= 160 && compTotal <= 200) discountPercent = 15;
+      else if (compTotal >= 201 && compTotal <= 250) discountPercent = 20;
+      else if (compTotal >= 251 && compTotal <= 300) discountPercent = 25;
+      else if (compTotal >= 301 && compTotal <= 400) discountPercent = 35;
+      else if (compTotal >= 301 && compTotal <= 400) discountPercent = 40;
+      else if (compTotal >= 401) discountPercent = 45;
+
+      let discountAmount = (compTotal * discountPercent) / 100;
+      let compAfterDiscount = compTotal - discountAmount;
+      let finalAfterDiscount = compAfterDiscount + product;
+
+      // fill hidden discount box (original, discounted, final after discount + products) - rounded
+      if (discountPercent > 0) {
+        const f = v => Math.round(v);
+        document.getElementById("discountDetails").innerHTML =
+          "Original Computer Total: ₹: " + f(compTotal) + "<br>" +
+          "Discounted Computer Total: ₹: " + f(compAfterDiscount) + "<br>" +
+          "<strong>Final Total (Computer + Products): ₹: : " + f(finalAfterDiscount) + "</strong>";
+      } else {
+        document.getElementById("discountDetails").innerText = "No discount applied.";
+      }
+    }
+
+    // toggle discount box with "D" key
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "d" || e.key === "D") {
+        let box = document.getElementById("discountBox");
+        box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
+      }
+    });
+
+    // initial calculate
+    calculate();
+  </script>
+</body>
+</html>
